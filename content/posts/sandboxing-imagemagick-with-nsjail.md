@@ -1,5 +1,6 @@
 ---
 title: "Sandboxing ImageMagick with nsjail"
+tags: ["security", "nsjail", "imagemagick", "sandbox"]
 date: 2017-12-04T01:08:52+01:00
 draft: false
 ---

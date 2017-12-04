@@ -7,7 +7,7 @@ permalinks:
   posts: /:year/:month/:title/
 
 taxonomies:
-  tags: ["meta", "theme", "blog"]
+  tag: "tags"
 
 params:
   description: something with computers, software and information security
