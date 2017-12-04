@@ -28,10 +28,10 @@ My goals for this sandbox can be broken down like this:
 - No network access — all images are local, so there's no reason for ImageMagick
   to talk to anyone over the network
 - Read-only access to the binaries, library and configuration files and write
-  access to the folder in which images live temporarily during conversion
-- Sane maximum execution times — somewhat limiting the impact of DoS attacks
-- Permit only a small subset of syscalls to be used in order to reduce the
-  overall attack surface (making it harder for attackers to escape the sandbox)
+  access to the directory in which images live temporarily during conversion
+- Sane maximum execution times, somewhat limiting the impact of DoS attacks
+- Permit only a small subset of syscalls in order to reduce the overall attack
+  surface (making it harder for attackers to escape the sandbox)
 
 Most distributions don't have nsjail packages yet, so we'll need to build from
 source. We'll start with the dependencies (assuming you're on Debian or Ubuntu):
@@ -96,8 +96,8 @@ All of that leaves me with the following additional mount directives:
     }
 
     mount {
-      src: "/usr/local/bin/identify"
-      dst: "/usr/local/bin/identify"
+      src: "/usr/local/bin/convert"
+      dst: "/usr/local/bin/convert"
       is_bind: true
       mandatory: false
     }
@@ -116,8 +116,8 @@ All of that leaves me with the following additional mount directives:
       mandatory: false
     }
 
-I also add `mandatory: false` to the existing `/usr/bin/identify` mount. That
-way, nsjail doesn't throw an error if `/usr/bin/identify` doesn't exist and I
+I also add `mandatory: false` to the existing `/usr/bin/convert` mount. That
+way, nsjail doesn't throw an error if `/usr/bin/convert` doesn't exist and I
 can go back and forth between compiled and packaged versions of ImageMagick
 without having to change the nsjail configuration.
 
@@ -227,8 +227,8 @@ this:
 Now we know the missing syscall has the number 158, which we can translate back
 to `arch_prctl` using the [Kafel source file from earlier](https://github.com/google/kafel/blob/master/src/syscalls/amd64_syscalls.c).
 
-You'll probably end up doing this a couple of times before you end up with a
-working configuration. This is the final syscall policy I ended up with:
+You'll probably end up doing this a couple of times before the execution
+succeeds. This is the final syscall policy I ended up with:
 
     seccomp_string: "POLICY imagemagick_convert {"
     seccomp_string: "  ALLOW {"
@@ -258,8 +258,8 @@ with the following content:
     #!/usr/bin/env bash
     nsjail --quiet --config /etc/nsjail/imagemagick-convert.cfg -- /usr/bin/convert "$@"
 
-Make sure to adjust the path from `/usr/bin/convert` if you use a compiled
-version of ImageMagick, and `chmod +x` the wrapper file.
+Use `chmod +x` on the newly-created file and make sure to adjust the path from
+`/usr/bin/convert` if you use a compiled version of ImageMagick and .
 
 Finally, we'll need to get Mastodon to use this file rather than the one located
 in `/usr/bin` or `/usr/local/bin`. We do that by adding the following
@@ -275,7 +275,7 @@ Reload systemd, restart the two services and you're done:
 
     sudo systemctl daemon-reload
     sudo systemctl restart mastodon-sidekiq
-    sudo systemctl restart mastodon-sidekiq
+    sudo systemctl restart mastodon-web
 
 It's a good idea to periodically check your syslog (or audit log) for the string
 "SECCOMP" after you deploy this, or to have monitoring alert you to a match.
