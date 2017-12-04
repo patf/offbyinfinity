@@ -297,8 +297,11 @@ I went with 6.8.5-10:
     Features: DPC OpenMP Modules
     Delegates: mpeg fontconfig freetype jbig jng jpeg lzma png ps x xml zlib
 
-Running the PoC without having `/usr/local/bin/nsjail-wrapper` in my path,
-I get the following result:
+The PoC code uses the `identify` binary, so we'll need the nsjail configuration
+from [the earlier gist](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-identify-cfg)
+and [the corresponding wrapper script](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-identify).
+Running the PoC without having `/usr/local/bin/nsjail-wrapper` in my path, I now
+get the following result:
 
     ./test.sh
     testing read
