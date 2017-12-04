@@ -1,0 +1,18 @@
+baseURL: https://offbyinfinity.com/
+languageCode: en-us
+title: Off by Infinity
+theme: heather-hugo
+
+permalinks:
+  posts: /:year/:month/:title/
+
+taxonomies:
+  tags: ["meta", "theme", "blog"]
+
+params:
+  description: something with computers, software and information security
+  author:
+    name: Patrick Figel
+    email: patrick@figel.email
+  readMoreLabel: Read more
+  footerHTML: © Patrick Figel {year} // <a href="/about/">About</a>
