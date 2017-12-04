@@ -1,7 +1,7 @@
 ---
 title: "Sandboxing ImageMagick with nsjail"
 date: 2017-12-04T01:08:52+01:00
-draft: true
+draft: false
 ---
 
 ImageMagick is the go-to image conversion library in many environments. It's
