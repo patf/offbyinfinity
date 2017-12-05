@@ -74,17 +74,20 @@ with that configuration, reading this section will probably give you the tools
 you need for a fix.
 
 Let's start by looking at the sample configuration. The default values
-for things like `time_limit` seem good enough, so let's leave them as-is. Next
-are a couple of mount directives which provide access to the file system.
+for things like `time_limit` seem good enough, so we can leave them mostly
+as-is. `rlimit_nofile`, which is the maximum  number of opened files, should be
+increased to slightly above the file limit set in your ImageMagick policy.
+Converting GIFs with many frames seems to generate a lot of temporary files.
+[This](https://gist.github.com/patf/5aa5ca53b1589ff403b6dadad447e5bf)
+is the `policy.xml` file I use with ImageMagick 7 — this is another place where
+you can greatly reduce your attack surface.
+
+Next are a couple of mount directives which provide access to the file system.
 Most of them are read-only (no `rw: true`) and permit access to the ImageMagick
 binary and shared libraries. I happen to use a compiled version of ImageMagick
 that's located in `/usr/local/bin` rather than `/usr/bin`, so I'll need a mount
 for that. We'll also want to permit access to the ImageMagick configuration
 files which are located in either `/etc/ImageMagick-6` or `/etc/ImageMagick-7`.
-
-Side note: ImageMagick's policy configuration is another place where you can
-greatly reduce your attack surface. [This](https://gist.github.com/patf/5aa5ca53b1589ff403b6dadad447e5bf)
-is the configuration I use for Mastodon.
 
 All of that leaves me with the following additional mount directives:
 
