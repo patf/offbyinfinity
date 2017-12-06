@@ -133,17 +133,29 @@ processes them. Paperclip helpfully logs every command it runs, so we can just
     Command :: identify -format %m '/tmp/8d777f385d3dfec8815d20f7496026dc20171203-9975-9mj1dj[0]'
     Command :: convert '/tmp/8d777f385d3dfec8815d20f7496026dc20171203-9975-9mj1dj[0]' -auto-orient -resize "1280x1280>" -quality 90 -strip '/tmp/72dc008206075ad7e69b00a1e4f2544020171203-9975-1iywevw'
 
-We can see that all the files are located in `/tmp`, so we'll modify the
-existing `/tmp` mount to look like this:
+We can see that all the files are located in `/tmp`. We could continue by
+mounting `/tmp` within our sandbox, but this opens up a potential sandbox escape
+vector: Programs like Xorg create sockets within `/tmp` which could be used to
+run processes outside of the sandbox. (Thanks to Robert Święcki for pointing
+this out!)
+
+What we'll do instead is to instruct our application to use a different `TMP`
+directory that's used exclusively by the application, and mount that. I'll
+explain how in the next section, but for now add the following mount and
+change the `TMP` environment variable:
+
+    envar: "TMP=/home/mastodon/live/tmp/rails_tmp"
+
+    ...
 
     mount {
-      src: "/tmp"
-      dst: "/tmp"
+      src: "/home/mastodon/live/tmp/rails_tmp"
+      dst: "/home/mastodon/live/tmp/rails_tmp"
       rw: true
       is_bind: true
     }
 
-While we're at it, let's also remove the entire `/Documents` mount — we won't be
+While we're at it, let's remove the entire `/Documents` mount — we won't be
 needing that.
 
 The final section of the sample configuration is where we define our syscall
@@ -152,6 +164,11 @@ process to be killed if it uses the `ptrace`, `process_vm_readv` or
 `process_vm_writev` syscalls. That's better than nothing, but we can do better
 by using a whitelist of syscalls that we know ImageMagick needs, and killing the
 process if any other syscall is used.
+
+**Update:** The previous paragraph is no longer accurate. nsjail's
+sample configuration now includes a syscall policy based on the one we're
+building in this post, with some improvements from the nsjail author. The
+improvements have been added to the policy linked at the end of this section.
 
 Getting a list of the required syscalls is a bit involved. We can start by using
 `strace -qcf` followed by some of the commands we observed in our Rails log,
@@ -235,14 +252,14 @@ succeeds. This is the final syscall policy I ended up with:
 
     seccomp_string: "POLICY imagemagick_convert {"
     seccomp_string: "  ALLOW {"
-    seccomp_string: "    read, write, open, close, newstat, newfstat,"
+    seccomp_string: "    read, write, open, openat, close, newstat, newfstat,"
     seccomp_string: "    newlstat, lseek, mmap, mprotect, munmap, brk,"
     seccomp_string: "    rt_sigaction, rt_sigprocmask, pwrite64, access,"
     seccomp_string: "    getpid, execve, getdents, unlink, fchmod,"
     seccomp_string: "    getrlimit, getrusage, sysinfo, times, futex,"
     seccomp_string: "    arch_prctl, sched_getaffinity, set_tid_address,"
     seccomp_string: "    clock_gettime, set_robust_list, exit_group,"
-    seccomp_string: "    clone, getcwd, pread64"
+    seccomp_string: "    clone, getcwd, pread64, readlink, prlimit64"
     seccomp_string: "  }"
     seccomp_string: "}"
     seccomp_string: "USE imagemagick_convert DEFAULT KILL"
@@ -264,14 +281,23 @@ with the following content:
 Use `chmod +x` on the newly-created file and make sure to adjust the path from
 `/usr/bin/convert` if you use a compiled version of ImageMagick and .
 
-Finally, we'll need to get Mastodon to use this file rather than the one located
+Next, we'll need to get Mastodon to use this file rather than the one located
 in `/usr/bin` or `/usr/local/bin`. We do that by adding the following
 environment variable to the systemd services that run Mastodon:
 
     Environment="PATH=/usr/local/bin/nsjail-wrapper:/usr/local/bin:/usr/bin:/bin"
 
+Since our mount directives don't include `/tmp`, we'll also need to tell Rails
+(and thus paperclip) to use a different `TMP` path.
+
+    Environment="TMP=/home/mastodon/live/tmp/rails_tmp"
+
+Make sure to actually create that directory and `chown` it to the mastodon user.
+Otherwise, Rails will quietly fall back to using `/tmp`, effectively breaking
+your attachment processing.
+
 If you're following the default setup instructions for Mastodon, you'll want to
-add that line to both `/etc/systemd/system/mastodon-sidekiq.service` and
+add the two lines to both `/etc/systemd/system/mastodon-sidekiq.service` and
 `/etc/systemd/system/mastodon-web.service`.
 
 Reload systemd, restart the two services and you're done:
@@ -292,8 +318,10 @@ malicious file, so be careful when adjusting the policy.
 It's probably a good idea to test if our sandbox is working as intended.
 To do that, we'll use the [Proof of Concept](https://github.com/ImageTragick/PoCs)
 available for the ImageTragick vulnerability, with some small adjustments to
-make it work in `/tmp`. We'll need to build a vulnerable version of ImageMagick.
-I went with 6.8.5-10:
+make it work in our `TMP` path.
+
+We'll need to build a vulnerable version of ImageMagick first. I went with
+6.8.5-10:
 
     convert -version
     Version: ImageMagick 6.8.5-10 2017-12-04 Q16 http://www.imagemagick.org
