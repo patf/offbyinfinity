@@ -259,13 +259,14 @@ succeeds. This is the final syscall policy I ended up with:
     seccomp_string: "    getrlimit, getrusage, sysinfo, times, futex,"
     seccomp_string: "    arch_prctl, sched_getaffinity, set_tid_address,"
     seccomp_string: "    clock_gettime, set_robust_list, exit_group,"
-    seccomp_string: "    clone, getcwd, pread64, readlink, prlimit64"
+    seccomp_string: "    clone, getcwd, pread64, readlink, prlimit64, mremap"
     seccomp_string: "  }"
     seccomp_string: "}"
     seccomp_string: "USE imagemagick_convert DEFAULT KILL"
 
 The full configuration for the `convert` binary can be found [here](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-convert-cfg).
-The same gist also includes a configuration for the `identify` binary.
+The same gist also includes a configuration for the `identify` binary and
+for FFmpeg.
 
 ## Caging the Elephant
 
