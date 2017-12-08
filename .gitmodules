@@ -1,3 +1,3 @@
 [submodule "themes/heather-hugo"]
 	path = themes/heather-hugo
-	url = https://github.com/patf/heather-hugo.git
+	url = ../heather-hugo.git
