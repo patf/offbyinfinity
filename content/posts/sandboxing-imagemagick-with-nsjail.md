@@ -265,8 +265,8 @@ succeeds. This is the final syscall policy I ended up with:
     seccomp_string: "USE imagemagick_convert DEFAULT KILL"
 
 The full configuration for the `convert` binary can be found [here](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-convert-cfg).
-The same gist also includes a configuration for the `identify` binary and
-for FFmpeg.
+The same gist also includes a configuration for the `identify` binary, for
+FFmpeg and file(1).
 
 ## Caging the Elephant
 
