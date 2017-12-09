@@ -1,0 +1,38 @@
+baseURL = "https://offbyinfinity.com/"
+languageCode = "en-us"
+title = "Off by Infinity"
+theme = "heather-hugo"
+
+[permalinks]
+posts = "/:year/:month/:title/"
+
+[taxonomies]
+tag = "tags"
+
+[params]
+description = "something with computers, software and information security"
+readMoreLabel = "Read more"
+footerHTML = "© Patrick Figel {year} // <a href=\"/about/\">About</a>"
+[params.author]
+name = "Patrick Figel"
+email = "patrick@figel.email"
+twitter = "patfigel"
+
+
+[blackfriday]
+hrefTargetBlank = true
+
+[outputs]
+home = [ "HTML", "RSS", "HEADERS" ]
+
+[mediaTypes]
+[mediaTypes."text/netlify"]
+suffix = ""
+delimiter = ""
+
+[outputFormats]
+[outputFormats.HEADERS]
+mediatype = "text/netlify"
+baseName = "_headers"
+isPlainText = true
+notAlternative = true
