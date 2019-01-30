@@ -78,7 +78,7 @@ for things like `time_limit` seem good enough, so we can leave them mostly
 as-is. `rlimit_nofile`, which is the maximum  number of opened files, should be
 increased to slightly above the file limit set in your ImageMagick policy.
 Converting GIFs with many frames seems to generate a lot of temporary files.
-[This](https://gist.github.com/patf/5aa5ca53b1589ff403b6dadad447e5bf)
+[This](https://gist.github.com/pfigel/5aa5ca53b1589ff403b6dadad447e5bf)
 is the `policy.xml` file I use with ImageMagick 7 — this is another place where
 you can greatly reduce your attack surface.
 
@@ -264,7 +264,7 @@ succeeds. This is the final syscall policy I ended up with:
     seccomp_string: "}"
     seccomp_string: "USE imagemagick_convert DEFAULT KILL"
 
-The full configuration for the `convert` binary can be found [here](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-convert-cfg).
+The full configuration for the `convert` binary can be found [here](https://gist.github.com/pfigel/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-convert-cfg).
 The same gist also includes a configuration for the `identify` binary, for
 FFmpeg and file(1).
 
@@ -331,8 +331,8 @@ We'll need to build a vulnerable version of ImageMagick first. I went with
     Delegates: mpeg fontconfig freetype jbig jng jpeg lzma png ps x xml zlib
 
 The PoC code uses the `identify` binary, so we'll need the nsjail configuration
-from [the earlier gist](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-identify-cfg)
-and [the corresponding wrapper script](https://gist.github.com/patf/d4d533e3dd8ff981667405059df99b6b#file-identify).
+from [the earlier gist](https://gist.github.com/pfigel/d4d533e3dd8ff981667405059df99b6b#file-imagemagick-identify-cfg)
+and [the corresponding wrapper script](https://gist.github.com/pfigel/d4d533e3dd8ff981667405059df99b6b#file-identify).
 Running the PoC without having `/usr/local/bin/nsjail-wrapper` in my path, I now
 get the following result:
 
